@@ -8,7 +8,7 @@
     <div v-if="isLoggedInComputed">
       <div class="navbar-buttons">
         <Button class="p-button-sm button-custom button-join" @click="showCreateTaskDialog">Create Task</Button>
-        <router-link :to="'/profile/' + userId">
+        <router-link :to="'/profile/' + id">
           <Avatar
             image="https://img.freepik.com/free-psd/3d-illustration-person-tank-top_23-2149436202.jpg?w=740&t=st=1693896892~exp=1693897492~hmac=db69c8574c1a81128270c1e8a377e62305c41a1e2f41383fc27ad5bfbdb01771"
             class="mr-2 custom-user" size="large" shape="circle" />
@@ -35,6 +35,7 @@
       :dialogHeader="dialogHeader"
       :dialogWidth="dialogWidth"
       :dialogClass="dialogClass"
+      @create-task="handleCreateTask"
     />
 
   </nav>
@@ -60,18 +61,18 @@ const showTaskDialog = ref(false);
 
 
 
-// Import store and compute isLoggedInComputed
 import store from '../store/store';
 const isLoggedInComputed = computed(() => store.getters.isLoggedIn);
-
-// Watch isLoggedInComputed for changes
+const id = store.getters.userId;
 watch(isLoggedInComputed, (newValue) => {
   if (newValue) {
     loginDialogVisible.value = false;
     signupDialogVisible.value = false;
   }
 });
-
+const handleCreateTask = () => {
+  showTaskDialog.value = false;
+};
 // Define component methods
 const showLoginDialog = () => {
   loginDialogVisible.value = true;

@@ -1,9 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { getProfile } = require("../controllers/profileControllers");
+const {
+getAllUsers,
+getUserById,
+deleteUser,
+updateUser,
+} = require("../controllers/profileControllers");
 const { verifyAccessToken } = require("../middlewares.js");
 
-// Routes beginning with /api/profile
-router.get("/", verifyAccessToken, getProfile);
+router.get("/users", verifyAccessToken, getAllUsers);
+router.get("/users/:userId", verifyAccessToken, getUserById);
+router.delete("/users/:userId", verifyAccessToken, deleteUser);
+router.put("/users/:userId", verifyAccessToken, updateUser);
 
 module.exports = router;

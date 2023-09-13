@@ -5,7 +5,7 @@ const { verifyAccessToken } = require("../middlewares.js");
 
 router.get("/", verifyAccessToken, taskController.getTasks);
 router.get("/:taskId", verifyAccessToken, taskController.getTask);
-router.get("/Shared", verifyAccessToken, taskController.getSharedTasks);
+router.get("/shared/:id", verifyAccessToken, taskController.getSharedTasks);
 router.post("/", verifyAccessToken, taskController.createTask);
 router.put("/:taskId", verifyAccessToken, taskController.updateTask);
 router.delete("/:taskId", verifyAccessToken, taskController.deleteTask);

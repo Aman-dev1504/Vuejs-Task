@@ -16,15 +16,18 @@ const store = createStore({
     user: loadUserFromLocalStorage(), 
     tasks: [], 
     sharedTasks: [],
+    allUsers: [],
   },
   mutations: {
     setUser(state, user) {
       state.user = user;
       localStorage.setItem('user', JSON.stringify(user));
+      
     },
     clearUser(state) {
       state.user = null;
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
     },
     setTasks(state, tasks) {
       state.tasks = tasks;
@@ -45,11 +48,17 @@ const store = createStore({
     deleteTask(state, taskId) {
       state.tasks = state.tasks.filter((task) => task._id !== taskId);
     },
+    setAllUsers(state, users) {
+      state.allUsers = users;
+    },
   },
-  actions, 
+  actions,
   getters: {
     isLoggedIn: (state) => {
       return !!state.user; 
+    },
+    userId: (state) => {
+      return state.user ? state.user._id : null;
     },
   },
 });

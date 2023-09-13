@@ -7,12 +7,8 @@ const taskSchema = new mongoose.Schema(
     dueDate: String,
     priority: String,
     category: String,
-    sharedWith: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    sharedWith: [],
+    user:String,
   },
   {
     timestamps: true,

@@ -9,7 +9,8 @@ exports.createTask = async (req, res) => {
       dueDate: req.body.dueDate,
       priority: req.body.priority,
       category: req.body.category,
-      user: req.user.id,
+      sharedWith:req.body.sharedWith,
+      user: req.body.user,
     });
 
     res.status(201).json({ task});
@@ -29,13 +30,16 @@ exports.getTasks = async (req, res) => {
 }
 exports.getSharedTasks = async (req, res) => {
   try {
-    const sharedTasks = await Task.find({ sharedWith: req.user.id });
-    res.status(200).json({ sharedTasks, status: true, msg: "Tasks found successfully.." });
+    const { id } = req.params;
+  
+    const sharedTasks = await Task.find({ sharedWith: id });
+    res.status(200).json({ sharedTasks, status: true, msg: "Shared tasks found successfully." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: false, msg: "Internal Server Error" });
   }
-}
+};
+
 exports.getTask = async (req, res) => {
   try {
     if (!validateObjectId(req.params.taskId)) {
@@ -55,7 +59,7 @@ exports.getTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
   try {
-    const { title, description, dueDate, priority, category } = req.body;
+    const { title, description, dueDate, priority, category,sharedWith } = req.body;
 
     if (!validateObjectId(req.params.taskId)) {
       return res.status(400).json({ status: false, msg: "Task id not valid" });
@@ -75,6 +79,7 @@ exports.updateTask = async (req, res) => {
     task.dueDate = dueDate;
     task.priority = priority;
     task.category = category;
+    task.sharedWith=sharedWith;
 
     await task.save();
 

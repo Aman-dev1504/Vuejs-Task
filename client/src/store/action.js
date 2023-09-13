@@ -57,14 +57,15 @@ export const actions = {
   },
   
   
-
-  async updateTask({ commit }, { taskId, description }) {
+  async updateTask({ commit }, taskData) {
     try {
-      const response = await axiosInstance.put(`/api/tasks/${taskId}`, { description });
-      if (response.data) {
+      const response = await axiosInstance.put(`/api/tasks/${taskData._id}`, taskData); 
+
+      if (response.status === 200 && response.data.status === 'success') {
         commit('updateTask', response.data.task);
         return { success: true, task: response.data.task };
       }
+
       return { success: false, message: 'Task update failed' };
     } catch (error) {
       console.error('An error occurred during task update:', error);
@@ -72,19 +73,22 @@ export const actions = {
     }
   },
 
-  async deleteTask({ commit }, taskId) {
-    try {
-      const response = await axiosInstance.delete(`/api/tasks/${taskId}`);
-      if (response.data && response.data.success) {
-        commit('deleteTask', taskId);
-        return { success: true };
-      }
-      return { success: false, message: 'Task deletion failed' };
-    } catch (error) {
-      console.error('An error occurred during task deletion:', error);
-      return { success: false, message: 'An error occurred during task deletion' };
+async deleteTask({ commit }, taskId) {
+  try {
+    const response = await axiosInstance.delete(`/api/tasks/${taskId}`);
+
+    if (response.status === 200 && response.data.status === 'success') {
+      commit('deleteTask', taskId);
+      return { status: true }; // Change 'success' to 'status'
     }
-  },
+
+    return { status: false, message: 'Task deletion failed' };
+  } catch (error) {
+    console.error('An error occurred during task deletion:', error);
+    return { status: false, message: 'An error occurred during task deletion' };
+  }
+}
+,
 
   async fetchTasks({ commit }) {
     try {
@@ -99,9 +103,11 @@ export const actions = {
       return { success: false, message: 'An error occurred during task fetch' };
     }
   },
-  async fetchSharedTasks({ commit }) {
+  
+  async fetchSharedTasks({ commit }, id) {
     try {
-      const response = await axiosInstance.get('/api/shared-tasks');
+      const response = await axiosInstance.get(`/api/tasks/shared/${id}`);
+      console.log(response)
       if (response.data) {
         commit('setSharedTasks', response.data.sharedTasks);
         return { success: true, sharedTasks: response.data.sharedTasks };
@@ -112,18 +118,75 @@ export const actions = {
       return { success: false, message: 'An error occurred during shared task fetch' };
     }
   },
+  
 
-  async shareTask({ commit }, { taskId, sharedWithUserId }) {
-    try {
-      const response = await axiosInstance.patch(`/api/tasks/${taskId}/share`, { sharedWithUserId });
-      if (response.data) {
-        commit('updateTask', response.data.task);
-        return { success: true, task: response.data.task };
-      }
-      return { success: false, message: 'Task sharing failed' };
-    } catch (error) {
-      console.error('An error occurred during task sharing:', error);
-      return { success: false, message: 'An error occurred during task sharing' };
+
+async getTaskById({ commit }, taskId) {
+  try {
+    const response = await axiosInstance.get(`/api/tasks/${taskId}`);
+    if (response.data) {
+      const task = response.data.task;
+      commit('setTasks', task); 
+      return { success: true, task };
     }
-  },
+    return { success: false, message: 'Task retrieval failed' };
+  } catch (error) {
+    console.error('An error occurred during task retrieval:', error);
+    return { success: false, message: 'An error occurred during task retrieval' };
+  }
+},
+async fetchAllUsers({ commit }) {
+  try {
+    const response = await axiosInstance.get('/api/profile/users');
+    if (response.data) {
+      commit('setAllUsers', response.data.users);
+      return { success: true, users: response.data.users };
+    }
+    return { success: false, message: 'Failed to fetch users' };
+  } catch (error) {
+    console.error('An error occurred while fetching users:', error);
+    return { success: false, message: 'An error occurred while fetching users' };
+  }
+},
+async getUserById({ commit }, userId) {
+  try {
+    const response = await axiosInstance.get(`/api/profile/users/${userId}`);
+    if (response.data) {
+      return { success: true, user: response.data.user };
+    }
+    return { success: false, message: 'User not found' };
+  } catch (error) {
+    console.error('An error occurred while fetching the user:', error);
+    return { success: false, message: 'An error occurred while fetching the user' };
+  }
+},
+async deleteUser({ commit }, userId) {
+  try {
+    const response = await axiosInstance.delete(`/api/profile/users/${userId}`);
+    if (response.data && response.data.status === 'success') {
+      commit('deleteUser', userId); 
+      return { success: true };
+    }
+    return { success: false, message: 'User deletion failed' };
+  } catch (error) {
+    console.error('An error occurred while deleting the user:', error);
+    return { success: false, message: 'An error occurred while deleting the user' };
+  }
+},
+async updateUser({ commit }, { id, userData }) {
+  try {
+    const response = await axiosInstance.put(`/api/profile/users/${id}`, userData);
+    if (response.data) {
+      commit('updateUser', response.data.user); 
+      return { success: true, user: response.data.user };
+    }
+    return { success: false, message: 'User update failed' };
+  } catch (error) {
+    console.error('An error occurred while updating the user:', error);
+    return { success: false, message: 'An error occurred while updating the user' };
+  }
 }
+
+
+
+};

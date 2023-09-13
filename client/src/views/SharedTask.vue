@@ -1,13 +1,10 @@
 <template>
-  <div class="filter-menu">
-    <Dropdown v-model="selectedFilter" :options="filterOptions" optionLabel="label" optionValue="value"
-      placeholder="Filter Tasks" @change="filterTasks" class="dialog" aria-label="Filter" />
-  </div>
+  <div class="shared-task-list">
 
-  <div class="task-list">
-
-    <div class="card" v-for="task in filteredTasks" :key="task.id" data-aos="flip-left">
-      <Card style="width: 18em; overflow: hidden; height: 410px">
+    
+    <div class="task-list">
+      <div class="card" v-for="task in sharedTasks" :key="task._id" data-aos="flip-left">
+        <Card style="width: 18em; overflow: hidden; height: 410px">
         <template #header>
           <div class="header">
             <img alt="user header" src="https://primefaces.org/cdn/primevue/images/usercard.png" />
@@ -26,7 +23,7 @@
         <template #subtitle>
           <div class="dateNcat">
             <h5>{{ task.category }}</h5>
-            <p class="dueDate">{{ formatDate(task.dueDate) }}</p>
+            <p class="dueDate">{{ formatDate(task?.dueDate) }}</p>
           </div>
         </template>
         <template #content>
@@ -34,78 +31,44 @@
         </template>
         <template #footer>
           <div class="footer">
-            <Button icon="pi pi-eye" severity="primary" style="margin-left: 0.5em" @click="showTaskDetails(task)"
+            <Button icon="pi pi-eye" label="View" severity="primary" style="margin-left: 0.5em" @click="openTaskDetailsDialog(task)"
               class="btn" />
-            <router-link :to="'/edit/' + task._id">
-              <Button icon="pi pi-pencil" severity="warning" style="margin-left: 0.5em" class="btn" />
-            </router-link>
+            
           </div>
         </template>
       </Card>
+      </div>
     </div>
   </div>
-
   <TaskDetails :task="selectedTask" :visible="taskDetailsDialogVisible" @close="closeTaskDetailsDialog" />
 </template>
 
-
 <script setup>
-import { ref, watch, onMounted } from 'vue';
-import Card from 'primevue/card';
-import Dropdown from 'primevue/dropdown';
-import Button from 'primevue/button';
-import store from '../store/store';
-import { useRouter } from 'vue-router';
-const router = useRouter();
+import { ref, onMounted,watch } from 'vue';
 import TaskDetails from '../components/utils/TaskDetails.vue';
-
-const tasks = ref([]);
+import Card from 'primevue/card';
+import store from '../store/store';
+import Button from 'primevue/button';
+const id = store.getters.userId;
+const sharedTasks = ref([]);
 const selectedTask = ref(null);
-
-const selectedFilter = ref('View All');
-const filterOptions = [
-
-  { label: 'View all', value: 'View All' },
-  { label: 'Tech', value: 'Tech' },
-  { label: 'Study', value: 'Study' },
-  { label: 'Daily', value: 'Daily' },
-  { label: 'Due Date', value: 'dueDate' },
-  { label: 'Priority Low', value: 'Low' },
-  { label: 'Priority Medium', value: 'Medium' },
-  { label: 'Priority High', value: 'High' },
-];
-
-const filteredTasks = ref([]);
-
-const filterTasks = () => {
-  if (!selectedFilter.value || selectedFilter.value === 'View All') {
-    filteredTasks.value = [...tasks.value];
-    return;
-  }
-
-  if (selectedFilter.value === 'dueDate') {
-    filteredTasks.value = [...tasks.value].sort((a, b) => {
-      const dueDateA = new Date(a.dueDate);
-      const dueDateB = new Date(b.dueDate);
-      return dueDateA - dueDateB;
-    });
-  } else if (selectedFilter.value === 'Low' || selectedFilter.value === 'Medium' || selectedFilter.value === 'High') {
-    filteredTasks.value = tasks.value.filter(task => task.priority === selectedFilter.value);
-  } else {
-    filteredTasks.value = tasks.value.filter(task => task.category === selectedFilter.value);
-  }
-};
-
-
-
 const taskDetailsDialogVisible = ref(false);
-
-function showTaskDetails(task) {
+onMounted(async () => {
+  const res = await store.dispatch('fetchSharedTasks', id);
+  if (res && res.success) {
+    console.log("Fetched Shared tasks", res.sharedTasks);
+    sharedTasks.value = res.sharedTasks; 
+  } else {
+    console.error('Failed to fetch shared tasks:', res.message);
+  }
+});
+function openTaskDetailsDialog(task) {
   selectedTask.value = task;
   taskDetailsDialogVisible.value = true;
 }
 
 function closeTaskDetailsDialog() {
+  selectedTask.value = null;
   taskDetailsDialogVisible.value = false;
 }
 function formatDate(inputDate) {
@@ -113,18 +76,10 @@ function formatDate(inputDate) {
   const options = { day: 'numeric', month: 'short', year: 'numeric' };
   return date.toLocaleDateString('en-US', options);
 }
-
-onMounted(async () => {
-  await store.dispatch('fetchTasks');
-  tasks.value = store.state.tasks;
-  filterTasks();
-});
-watch(selectedFilter, filterTasks);
-
-
-watch(() => store.state.tasks, (newTasks) => {
-  tasks.value = newTasks;
-  filterTasks();
+watch(() => store.state.sharedTasks, (newTasks) => {
+  console.log("Watch triggered. New tasks:", newTasks);
+  sharedTasks.value = newTasks;
+  console.log(sharedTasks.value);
 });
 </script>
 
